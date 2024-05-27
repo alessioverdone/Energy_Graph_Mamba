@@ -1,4 +1,4 @@
-# Energy_Graph_Mamba
+# energy-graph-mamba
 
 
 [![PyPI version](https://badge.fury.io/py/x-transformers.svg)](https://badge.fury.io/py/x-transformers)
