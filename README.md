@@ -44,7 +44,7 @@ class RecurrentGCN(torch.nn.Module):
         x = self.linear(x)
         return F.log_softmax(x, dim=1)
 ```
-
+Images and metrics visualization can be done with Wandb logger.
 
 ## Citations
 
