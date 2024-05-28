@@ -8,9 +8,14 @@ An implementation of Mamba architecture on forecasting temporal graph time serie
 ## Install
 
 ```bash
-$ pip install energy-graph-mamba
+$ conda env create -f environment.yml
 ```
 
+ATTENTION: torch-geometric-temporal has a bug when installed related to "to_dense_adj" function. It can be simply resolved by commenting the line of error (torch-geometric-temporal/nn/attention/tsagcn.py (r:6)) and adding:
+```python
+# from torch_geometric.utils.to_dense_adj import to_dense_adj
+from torch_geometric.utils import to_dense_adj
+```
 ## Usage
 
 
