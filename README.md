@@ -18,46 +18,53 @@ from torch_geometric.utils import to_dense_adj
 ```
 ## Usage
 
+For running the training you need only to run the ```main.py``` file. 
+The class ```Configuration``` define the all the parameters of the model.
+Models can be changed in ```main.py``` file: ```params.MODEL = "GConvLSTM"```; then all you need is to link the name of the model to its class on the ```get_model()``` function. 
 
-PyTorch Geometric Temporal makes implementing Dynamic and Temporal Graph Neural Networks quite easy. For example, this is all it takes to implement a recurrent graph convolutional network with two consecutive graph convolutional GRU cells and a linear layer:
+The actual dataset ```PV31T``` contains time series data of photovoltaic power, wind, temperature, months and hour information of 31 simulated photovoltaic plants. The training procedure is implemented in ```pytorch-lightning```. Here there is an example of the basic implementation of the ```main.py``` function.
 
 ```python
-import torch
-import torch.nn.functional as F
-from torch_geometric_temporal.nn.recurrent import GConvGRU
+import pytorch_lightning as pl
 
-class RecurrentGCN(torch.nn.Module):
+# Get parameters
+params = Configuration()
 
-    def __init__(self, node_features, num_classes):
-        super(RecurrentGCN, self).__init__()
-        self.recurrent_1 = GConvGRU(node_features, 32, 5)
-        self.recurrent_2 = GConvGRU(32, 16, 5)
-        self.linear = torch.nn.Linear(16, num_classes)
+# Dataset
+db = 'PV31T'  # ['PV31T']
+params.PATH_DATASET = params.DATA_MAP[db]
+params.MODEL = "CNN1D"  # ["GConvLSTM" , "LSTM", "CNN1D"]
 
-    def forward(self, x, edge_index, edge_weight):
-        x = self.recurrent_1(x, edge_index, edge_weight)
-        x = F.relu(x)
-        x = F.dropout(x, training=self.training)
-        x = self.recurrent_2(x, edge_index, edge_weight)
-        x = F.relu(x)
-        x = F.dropout(x, training=self.training)
-        x = self.linear(x)
+# Load datamodule
+data_module = DataModule(params)
+
+# Load model
+model = TrainingModule(params)
+params_dict = get_hyperparams_dict(params)
+
+# Trainer
+trainer = pl.Trainer(
+    max_epochs=params.EPOCHS,
+    fast_dev_run=params.FAST_DEV_RUN,
+    logger=params.LOGGER,
+    accelerator=params.ACCELERATOR,
+    gradient_clip_val=params.GRADIENT_CLIP,
+    check_val_every_n_epoch=params.CHECK_VAL_EVERY_N_EPOCH,
+    accumulate_grad_batches=params.ACCUMULATE_GRADIENT_BATCHES,
+    enable_checkpointing=params.ENABLE_CHECKPOINTING,
+    limit_train_batches=params.LIMIT_TRAIN_BATCHES,
+    limit_val_batches=params.LIMIT_VAL_BATCHES,
+    limit_test_batches=params.LIMIT_TEST_BATCHES,
+    callbacks=checkpoint_callback,
+    precision=params.PRECISION,
+    deterministic=params.DETERMINISTIC)
+    
+# Training
+trainer.fit(model, data_module)
         return F.log_softmax(x, dim=1)
 ```
 Images and metrics visualization can be done with Wandb logger.
 
-## Citations
-
-```bibtex
-@misc{seo2016structured,
-      title={Structured Sequence Modeling with Graph Convolutional Recurrent Networks}, 
-      author={Youngjoo Seo and Michaël Defferrard and Pierre Vandergheynst and Xavier Bresson},
-      year={2016},
-      eprint={1612.07659},
-      archivePrefix={arXiv},
-      primaryClass={stat.ML}
-}
-```
 
 
 
